@@ -40,3 +40,20 @@ client.setQuery(query)
 const bindings = await client.get()
 console.log(bindings)
 ```
+
+## Contributing
+
+```
+$ git clone https://github.com/hideokamoto/sparql-client.git
+$ cd sparql-client
+$ npm i
+```
+
+### Before PR
+
+Please pass following check before make your Pull Request.
+
+```
+$ npm run lint
+$ npm test
+```
