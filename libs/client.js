@@ -47,7 +47,7 @@ class Client {
    * @return {Promise<{}>} fetch result body 
    */
   get () {
-    this.execQuery().then(({bindings}) => bindings)
+    return this.execQuery().then(({bindings}) => bindings)
   }
 }
 module.exports = Client

@@ -13,6 +13,7 @@ $ npm i -S simple-sparql-client
 #### Promise
 
 ```
+const { execSparqlQuery( } = require('@hideokamoto/simple-sparql-client')
 execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
   .then(bindings => console.log(bindings))
 ```
@@ -20,6 +21,7 @@ execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
 #### Async / Await
 
 ```
+const { execSparqlQuery( } = require('@hideokamoto/simple-sparql-client')
 const bindings = await execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
 console.log(bindings)
 ```
@@ -29,7 +31,8 @@ console.log(bindings)
 #### Promise
 
 ```
-const client = new Client(endpoint)
+const { SPARQLClient } = require('@hideokamoto/simple-sparql-client')
+const client = new SPARQLClient(endpoint)
 client.setQuery(query)
 client.get()
   .then(bindings => console.log(bindings))
@@ -37,7 +40,8 @@ client.get()
 #### Async / Await
 
 ```
-const client = new Client(endpoint)
+const { SPARQLClient } = require('@hideokamoto/simple-sparql-client')
+const client = new SPARQLClient(endpoint)
 client.setQuery(query)
 const bindings = await client.get()
 console.log(bindings)
