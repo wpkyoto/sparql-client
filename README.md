@@ -1,4 +1,6 @@
 # Simple SPARQL Client
+[![Build Status](https://travis-ci.org/hideokamoto/sparql-client.svg?branch=master)](https://travis-ci.org/hideokamoto/sparql-client)
+[![npm version](https://badge.fury.io/js/simple-sparql-client.svg)](https://badge.fury.io/js/simple-sparql-client)
 
 ## Getting started
 
