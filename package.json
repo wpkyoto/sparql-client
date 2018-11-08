@@ -4,7 +4,8 @@
   "description": "Simple Sparql Client",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "doc": "jsdoc -c ./jsdoc.json"
   },
   "keywords": [
     "sparql",
@@ -17,7 +18,9 @@
     "sparql-http-client": "^1.0.2"
   },
   "devDependencies": {
+    "docdash": "^1.0.0",
     "jest": "^23.6.0",
+    "jsdoc": "^3.5.5",
     "power-assert": "^1.6.1"
   }
 }
