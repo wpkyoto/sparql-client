@@ -23,7 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "isomorphic-fetch": "^2.2.1",
-    "sparql-http-client": "^1.0.2"
+    "sparql-http-client": "^2.0.0"
   },
   "devDependencies": {
     "docdash": "^1.0.0",
