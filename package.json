@@ -1,45 +1,18 @@
 {
-  "name": "@hideokamoto/simple-sparql-client",
-  "version": "1.0.1",
-  "description": "Simple Sparql Client",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": ["dist"],
+  "name": "sparql-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "build": "vite build",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "prepublishOnly": "npm run build"
-  },
-  "keywords": ["sparql", "fetch", "semantic-web", "rdf", "typescript"],
-  "bugs": {
-    "url": "https://github.com/hideokamoto/sparql-client/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hideokamoto/sparql-client.git"
-  },
-  "author": "Hidetaka Okamoto <info@wp-kyoto.net> (https://wp-kyoto.net)",
-  "license": "MIT",
-  "dependencies": {
-    "sparql-http-client": "^2.4.1"
+    "build": "npm run build -w @hideokamoto/sparql-query-builder && npm run build -w @hideokamoto/simple-sparql-client",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
+    "clean": "rm -rf packages/*/dist packages/*/node_modules"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.10.1",
-    "@types/sparql-http-client": "^3.0.5",
     "typescript": "^5.7.2",
     "vite": "^6.0.1",
     "vite-plugin-dts": "^4.3.0",
