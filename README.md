@@ -1,65 +1,145 @@
 # Simple SPARQL Client
-[![Build Status](https://travis-ci.org/hideokamoto/sparql-client.svg?branch=master)](https://travis-ci.org/hideokamoto/sparql-client)
+
 [![npm version](https://badge.fury.io/js/@hideokamoto/simple-sparql-client.svg)](https://badge.fury.io/js/@hideokamoto/simple-sparql-client)
 
-## Getting started
+A modern TypeScript SPARQL client for querying RDF data from SPARQL endpoints like DBpedia, Wikidata, and others.
 
+## Features
+
+- 🔷 Full TypeScript support with type definitions
+- 📦 ESM and CommonJS support
+- 🚀 Built with Vite for optimal bundle size
+- ✅ Tested with Vitest
+- 🎨 Linted and formatted with Biome
+
+## Installation
+
+```bash
+npm install @hideokamoto/simple-sparql-client
 ```
-$ npm i -S simple-sparql-client
-```
 
-### As a function
+## Usage
 
-#### Promise
+### As a Function (Recommended)
 
-```
-const { execSparqlQuery( } = require('@hideokamoto/simple-sparql-client')
-execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
+#### TypeScript / ESM
+
+```typescript
+import { execSparqlQuery } from '@hideokamoto/simple-sparql-client'
+
+// Using async/await
+const bindings = await execSparqlQuery('SELECT DISTINCT * WHERE { ?s ?p ?o } LIMIT 100')
+console.log(bindings)
+
+// Using Promise
+execSparqlQuery('SELECT DISTINCT * WHERE { ?s ?p ?o } LIMIT 100')
   .then(bindings => console.log(bindings))
+  .catch(err => console.error(err))
 ```
 
-#### Async / Await
+#### CommonJS
 
-```
-const { execSparqlQuery( } = require('@hideokamoto/simple-sparql-client')
-const bindings = await execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
+```javascript
+const { execSparqlQuery } = require('@hideokamoto/simple-sparql-client')
+
+const bindings = await execSparqlQuery('SELECT DISTINCT * WHERE { ?s ?p ?o } LIMIT 100')
 console.log(bindings)
 ```
 
 ### As a Class
 
-#### Promise
+```typescript
+import { SPARQLClient } from '@hideokamoto/simple-sparql-client'
 
-```
-const { SPARQLClient } = require('@hideokamoto/simple-sparql-client')
-const client = new SPARQLClient(endpoint)
-client.setQuery(query)
-client.get()
-  .then(bindings => console.log(bindings))
-```
-#### Async / Await
+// Create a client with default endpoint (DBpedia)
+const client = new SPARQLClient()
 
-```
-const { SPARQLClient } = require('@hideokamoto/simple-sparql-client')
-const client = new SPARQLClient(endpoint)
-client.setQuery(query)
+// Or specify a custom endpoint
+const client = new SPARQLClient('https://query.wikidata.org/sparql')
+
+// Set query and execute
+client.setQuery('SELECT DISTINCT * WHERE { ?s ?p ?o } LIMIT 100')
 const bindings = await client.get()
 console.log(bindings)
 ```
 
+### Type Definitions
+
+The library exports TypeScript types for better development experience:
+
+```typescript
+import type { SparqlBinding, SparqlResults } from '@hideokamoto/simple-sparql-client'
+
+// SparqlBinding represents a single result row
+// SparqlResults contains the full result set
+```
+
+## API
+
+### `execSparqlQuery(query: string, endpoint?: string): Promise<SparqlBinding[]>`
+
+Execute a SPARQL query and return the bindings.
+
+- `query`: SPARQL query string
+- `endpoint`: SPARQL endpoint URL (default: `http://dbpedia.org/sparql`)
+- Returns: Promise with array of result bindings
+
+### `SPARQLClient`
+
+#### Constructor
+
+```typescript
+new SPARQLClient(endpoint?: string)
+```
+
+- `endpoint`: SPARQL endpoint URL (default: `http://dbpedia.org/sparql`)
+
+#### Methods
+
+- `setQuery(query: string): void` - Set the SPARQL query
+- `getQuery(): string | undefined` - Get the current query
+- `execQuery(): Promise<SparqlResults>` - Execute the query and get full results
+- `get(): Promise<SparqlBinding[]>` - Execute the query and get bindings
+
+## Development
+
+```bash
+# Clone the repository
+git clone https://github.com/hideokamoto/sparql-client.git
+cd sparql-client
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Lint code
+npm run lint
+
+# Fix lint issues
+npm run lint:fix
+
+# Format code
+npm run format
+
+# Build
+npm run build
+```
+
 ## Contributing
 
-```
-$ git clone https://github.com/hideokamoto/sparql-client.git
-$ cd sparql-client
-$ npm i
+Contributions are welcome! Please ensure the following before submitting a PR:
+
+```bash
+npm run lint    # All lint checks pass
+npm test        # All tests pass
+npm run build   # Build succeeds
 ```
 
-### Before PR
+## License
 
-Please pass following check before make your Pull Request.
-
-```
-$ npm run lint
-$ npm test
-```
+MIT
