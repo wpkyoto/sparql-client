@@ -31,7 +31,7 @@ describe('SPARQLClient Class', () => {
   describe('execQuery', () => {
     test('should throw error when query is not set', async () => {
       const client = new SPARQLClient()
-      await expect(client.execQuery()).rejects.toThrow('Query is not set')
+      await expect(client.execQuery()).rejects.toThrow('Query is not set. Call setQuery() first.')
     })
   })
 })

@@ -1,4 +1,4 @@
-import { SPARQLClient, type SparqlBinding, type SparqlResults } from './client.js'
+import { type QueryType, SPARQLClient, type SparqlBinding, type SparqlResults } from './client.js'
 
 /**
  * Execute SPARQL query as a simple function
@@ -15,4 +15,4 @@ export const execSparqlQuery = async (
   return client.get()
 }
 
-export { SPARQLClient, type SparqlBinding, type SparqlResults }
+export { SPARQLClient, type QueryType, type SparqlBinding, type SparqlResults }

@@ -53,9 +53,8 @@ import { SPARQLClient } from '@hideokamoto/simple-sparql-client'
 
 // Create a client with default endpoint (DBpedia)
 const client = new SPARQLClient()
-
-// Or specify a custom endpoint
-const client = new SPARQLClient('https://query.wikidata.org/sparql')
+// Or specify a custom endpoint:
+// const client = new SPARQLClient('https://query.wikidata.org/sparql')
 
 // Set query and execute
 client.setQuery('SELECT DISTINCT * WHERE { ?s ?p ?o } LIMIT 100')

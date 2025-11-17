@@ -1,3 +1,4 @@
+import type { Readable } from 'node:stream'
 import SparqlClient from 'sparql-http-client'
 
 export interface SparqlBinding {
@@ -12,6 +13,8 @@ export interface SparqlBinding {
 export interface SparqlResults {
   bindings: SparqlBinding[]
 }
+
+export type QueryType = 'SELECT' | 'CONSTRUCT' | 'ASK' | 'DESCRIBE'
 
 /**
  * Client class to call a SPARQL endpoint
@@ -46,9 +49,49 @@ export class SPARQLClient {
   }
 
   /**
+   * Detect query type from SPARQL query string
+   * @param query - SPARQL query string
+   * @returns Query type
+   */
+  private detectQueryType(query: string): QueryType {
+    const normalizedQuery = query.trim().toUpperCase()
+    if (normalizedQuery.startsWith('SELECT')) return 'SELECT'
+    if (normalizedQuery.startsWith('CONSTRUCT')) return 'CONSTRUCT'
+    if (normalizedQuery.startsWith('ASK')) return 'ASK'
+    if (normalizedQuery.startsWith('DESCRIBE')) return 'DESCRIBE'
+    return 'SELECT' // Default to SELECT
+  }
+
+  /**
+   * Read stream and convert to JSON
+   * @param stream - Readable stream
+   * @returns Promise with parsed JSON data
+   */
+  private async streamToJson(stream: Readable): Promise<unknown> {
+    const chunks: Buffer[] = []
+    return new Promise((resolve, reject) => {
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk))
+      stream.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf-8')
+        try {
+          const data = JSON.parse(body)
+          resolve(data)
+        } catch (error) {
+          reject(
+            new Error(
+              `Failed to parse JSON from stream. Body: ${body.substring(0, 200)}... Error: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          )
+        }
+      })
+      stream.on('error', (error: Error) => reject(error))
+    })
+  }
+
+  /**
    * Execute SPARQL query and get results
    * @returns Promise with query results
-   * @throws Error if query is not set
+   * @throws Error if query is not set or if parsing fails
    */
   async execQuery(): Promise<SparqlResults> {
     const query = this.getQuery()
@@ -56,10 +99,43 @@ export class SPARQLClient {
       throw new Error('Query is not set. Call setQuery() first.')
     }
 
-    const res = await this.client.query.select(query)
-    const body = await res.text()
-    const data = JSON.parse(body)
-    return data.results as SparqlResults
+    const queryType = this.detectQueryType(query)
+
+    try {
+      // For SELECT queries, use the stream-based API
+      const stream = await this.client.query.select(query)
+      const data = await this.streamToJson(stream)
+
+      // Runtime validation of response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error(`Invalid response structure: expected object, got ${typeof data}`)
+      }
+
+      const responseData = data as Record<string, unknown>
+
+      if (!responseData.results || typeof responseData.results !== 'object') {
+        throw new Error(
+          `Invalid response structure: missing or invalid 'results' property in ${queryType} query response`,
+        )
+      }
+
+      const results = responseData.results as Record<string, unknown>
+
+      if (!Array.isArray(results.bindings)) {
+        throw new Error(
+          `Invalid response structure: 'results.bindings' is not an array in ${queryType} query response`,
+        )
+      }
+
+      return { bindings: results.bindings as SparqlBinding[] }
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Query is not set')) {
+        throw error
+      }
+      throw new Error(
+        `Failed to execute ${queryType} query: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
   }
 
   /**
