@@ -202,4 +202,4 @@ MIT
 
 ## Author
 
-Hidetaka Okamoto <info@wp-kyoto.net> (https://wp-kyoto.net)
+Hidetaka Okamoto <info@wp-kyoto.net> (<https://wp-kyoto.net>)

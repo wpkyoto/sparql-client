@@ -42,7 +42,7 @@
   "author": "Hidetaka Okamoto <info@wp-kyoto.net> (https://wp-kyoto.net)",
   "license": "MIT",
   "dependencies": {
-    "sparql-http-client": "^2.4.1"
+    "sparql-http-client": "^3.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
