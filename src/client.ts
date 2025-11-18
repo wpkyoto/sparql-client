@@ -54,11 +54,19 @@ export class SPARQLClient {
    * @returns Query type
    */
   private detectQueryType(query: string): QueryType {
-    const normalizedQuery = query.trim().toUpperCase()
-    if (normalizedQuery.startsWith('SELECT')) return 'SELECT'
-    if (normalizedQuery.startsWith('CONSTRUCT')) return 'CONSTRUCT'
-    if (normalizedQuery.startsWith('ASK')) return 'ASK'
-    if (normalizedQuery.startsWith('DESCRIBE')) return 'DESCRIBE'
+    // Remove comments and normalize whitespace
+    const normalizedQuery = query
+      .replace(/#[^\n]*\n/g, ' ') // Remove line comments
+      .trim()
+      .toUpperCase()
+
+    // Skip PREFIX declarations to find the actual query type
+    const withoutPrefixes = normalizedQuery.replace(/PREFIX\s+\w*:\s*<[^>]*>\s*/gi, '')
+
+    if (/^\s*SELECT\b/.test(withoutPrefixes)) return 'SELECT'
+    if (/^\s*CONSTRUCT\b/.test(withoutPrefixes)) return 'CONSTRUCT'
+    if (/^\s*ASK\b/.test(withoutPrefixes)) return 'ASK'
+    if (/^\s*DESCRIBE\b/.test(withoutPrefixes)) return 'DESCRIBE'
     return 'SELECT' // Default to SELECT
   }
 
@@ -102,8 +110,37 @@ export class SPARQLClient {
     const queryType = this.detectQueryType(query)
 
     try {
-      // For SELECT queries, use the stream-based API
-      const stream = await this.client.query.select(query)
+      // Call the appropriate method based on query type
+      let stream: Readable
+
+      switch (queryType) {
+        case 'SELECT':
+          stream = await this.client.query.select(query)
+          break
+        case 'CONSTRUCT':
+        case 'DESCRIBE':
+          // CONSTRUCT and DESCRIBE both return RDF triples via construct()
+          stream = await this.client.query.construct(query)
+          break
+        case 'ASK': {
+          // ASK returns a boolean, handle it separately
+          const askResult = await this.client.query.ask(query)
+          return {
+            bindings: [
+              {
+                result: {
+                  type: 'literal',
+                  value: String(askResult),
+                  datatype: 'http://www.w3.org/2001/XMLSchema#boolean',
+                },
+              },
+            ],
+          }
+        }
+        default:
+          throw new Error(`Unsupported query type: ${queryType}`)
+      }
+
       const data = await this.streamToJson(stream)
 
       // Runtime validation of response structure

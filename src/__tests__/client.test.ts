@@ -34,4 +34,52 @@ describe('SPARQLClient Class', () => {
       await expect(client.execQuery()).rejects.toThrow('Query is not set. Call setQuery() first.')
     })
   })
+
+  describe('query type detection', () => {
+    test('should detect SELECT queries', () => {
+      const client = new SPARQLClient()
+      client.setQuery('SELECT * WHERE { ?s ?p ?o }')
+      // @ts-expect-error - accessing private method for testing
+      expect(client.detectQueryType(client.getQuery())).toBe('SELECT')
+    })
+
+    test('should detect CONSTRUCT queries', () => {
+      const client = new SPARQLClient()
+      client.setQuery('CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }')
+      // @ts-expect-error - accessing private method for testing
+      expect(client.detectQueryType(client.getQuery())).toBe('CONSTRUCT')
+    })
+
+    test('should detect ASK queries', () => {
+      const client = new SPARQLClient()
+      client.setQuery('ASK { ?s ?p ?o }')
+      // @ts-expect-error - accessing private method for testing
+      expect(client.detectQueryType(client.getQuery())).toBe('ASK')
+    })
+
+    test('should detect DESCRIBE queries', () => {
+      const client = new SPARQLClient()
+      client.setQuery('DESCRIBE <http://example.org/resource>')
+      // @ts-expect-error - accessing private method for testing
+      expect(client.detectQueryType(client.getQuery())).toBe('DESCRIBE')
+    })
+
+    test('should handle queries with prefixes', () => {
+      const client = new SPARQLClient()
+      const query = `
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        SELECT ?name WHERE { ?person foaf:name ?name }
+      `
+      client.setQuery(query)
+      // @ts-expect-error - accessing private method for testing
+      expect(client.detectQueryType(client.getQuery())).toBe('SELECT')
+    })
+
+    test('should default to SELECT for unrecognized queries', () => {
+      const client = new SPARQLClient()
+      client.setQuery('INVALID QUERY')
+      // @ts-expect-error - accessing private method for testing
+      expect(client.detectQueryType(client.getQuery())).toBe('SELECT')
+    })
+  })
 })
