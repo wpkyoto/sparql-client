@@ -1,4 +1,5 @@
 import type { Readable } from 'node:stream'
+import type { Quad, Term } from '@rdfjs/types'
 import SparqlClient from 'sparql-http-client'
 
 export interface SparqlBinding {
@@ -15,6 +16,30 @@ export interface SparqlResults {
 }
 
 export type QueryType = 'SELECT' | 'CONSTRUCT' | 'ASK' | 'DESCRIBE'
+
+/**
+ * Convert RDF/JS Term to SPARQL binding value format
+ * @param term - RDF/JS Term object
+ * @returns SPARQL binding value
+ */
+function termToBinding(term: Term): SparqlBinding[string] {
+  const binding: SparqlBinding[string] = {
+    type: term.termType.toLowerCase(),
+    value: term.value,
+  }
+
+  // Add language tag for literals
+  if ('language' in term && term.language) {
+    binding['xml:lang'] = term.language
+  }
+
+  // Add datatype for typed literals
+  if ('datatype' in term && term.datatype) {
+    binding.datatype = term.datatype.value
+  }
+
+  return binding
+}
 
 /**
  * Client class to call a SPARQL endpoint
@@ -71,27 +96,47 @@ export class SPARQLClient {
   }
 
   /**
-   * Read stream and convert to JSON
-   * @param stream - Readable stream
-   * @returns Promise with parsed JSON data
+   * Consume SELECT query stream and convert to bindings
+   * @param stream - Readable stream of ResultRow objects
+   * @returns Promise with bindings array
    */
-  private async streamToJson(stream: Readable): Promise<unknown> {
-    const chunks: Buffer[] = []
+  private async streamToBindings(stream: Readable): Promise<SparqlBinding[]> {
+    const bindings: SparqlBinding[] = []
     return new Promise((resolve, reject) => {
-      stream.on('data', (chunk: Buffer) => chunks.push(chunk))
-      stream.on('end', () => {
-        const body = Buffer.concat(chunks).toString('utf-8')
-        try {
-          const data = JSON.parse(body)
-          resolve(data)
-        } catch (error) {
-          reject(
-            new Error(
-              `Failed to parse JSON from stream. Body: ${body.substring(0, 200)}... Error: ${error instanceof Error ? error.message : String(error)}`,
-            ),
-          )
+      stream.on('data', (row: Record<string, Term>) => {
+        const binding: SparqlBinding = {}
+        for (const [variable, term] of Object.entries(row)) {
+          binding[variable] = termToBinding(term)
         }
+        bindings.push(binding)
       })
+      stream.on('end', () => resolve(bindings))
+      stream.on('error', (error: Error) => reject(error))
+    })
+  }
+
+  /**
+   * Consume CONSTRUCT/DESCRIBE query stream and convert to bindings
+   * @param stream - Readable stream of RDF/JS Quads
+   * @returns Promise with bindings representing triples
+   */
+  private async streamToTriples(stream: Readable): Promise<SparqlBinding[]> {
+    const bindings: SparqlBinding[] = []
+    return new Promise((resolve, reject) => {
+      stream.on('data', (quad: Quad) => {
+        // Convert quad to binding format with subject, predicate, object
+        const binding: SparqlBinding = {
+          subject: termToBinding(quad.subject),
+          predicate: termToBinding(quad.predicate),
+          object: termToBinding(quad.object),
+        }
+        // Add graph if present
+        if (quad.graph.termType !== 'DefaultGraph') {
+          binding.graph = termToBinding(quad.graph)
+        }
+        bindings.push(binding)
+      })
+      stream.on('end', () => resolve(bindings))
       stream.on('error', (error: Error) => reject(error))
     })
   }
@@ -110,20 +155,22 @@ export class SPARQLClient {
     const queryType = this.detectQueryType(query)
 
     try {
-      // Call the appropriate method based on query type
-      let stream: Readable
-
       switch (queryType) {
-        case 'SELECT':
-          stream = await this.client.query.select(query)
-          break
+        case 'SELECT': {
+          // SELECT returns a stream of ResultRow objects (Record<string, Term>)
+          const stream = await this.client.query.select(query)
+          const bindings = await this.streamToBindings(stream)
+          return { bindings }
+        }
         case 'CONSTRUCT':
-        case 'DESCRIBE':
-          // CONSTRUCT and DESCRIBE both return RDF triples via construct()
-          stream = await this.client.query.construct(query)
-          break
+        case 'DESCRIBE': {
+          // CONSTRUCT and DESCRIBE return RDF/JS quad streams
+          const stream = await this.client.query.construct(query)
+          const bindings = await this.streamToTriples(stream)
+          return { bindings }
+        }
         case 'ASK': {
-          // ASK returns a boolean, handle it separately
+          // ASK returns a Promise<boolean>
           const askResult = await this.client.query.ask(query)
           return {
             bindings: [
@@ -140,31 +187,6 @@ export class SPARQLClient {
         default:
           throw new Error(`Unsupported query type: ${queryType}`)
       }
-
-      const data = await this.streamToJson(stream)
-
-      // Runtime validation of response structure
-      if (!data || typeof data !== 'object') {
-        throw new Error(`Invalid response structure: expected object, got ${typeof data}`)
-      }
-
-      const responseData = data as Record<string, unknown>
-
-      if (!responseData.results || typeof responseData.results !== 'object') {
-        throw new Error(
-          `Invalid response structure: missing or invalid 'results' property in ${queryType} query response`,
-        )
-      }
-
-      const results = responseData.results as Record<string, unknown>
-
-      if (!Array.isArray(results.bindings)) {
-        throw new Error(
-          `Invalid response structure: 'results.bindings' is not an array in ${queryType} query response`,
-        )
-      }
-
-      return { bindings: results.bindings as SparqlBinding[] }
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Query is not set')) {
         throw error

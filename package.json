@@ -42,6 +42,7 @@
   "author": "Hidetaka Okamoto <info@wp-kyoto.net> (https://wp-kyoto.net)",
   "license": "MIT",
   "dependencies": {
+    "@rdfjs/types": "^1.1.0",
     "sparql-http-client": "^3.1.0"
   },
   "devDependencies": {
