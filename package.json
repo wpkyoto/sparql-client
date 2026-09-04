@@ -1,16 +1,36 @@
 {
-  "name": "@hideokamoto/simple-sparql-client",
-  "version": "1.0.1",
-  "description": "Simple Sparql Client",
-  "main": "index.js",
+  "name": "sparql-builder",
+  "version": "1.0.0",
+  "description": "Type-safe SPARQL query builder and client for JavaScript/TypeScript",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
-    "test": "jest",
-    "doc": "jsdoc -c ./jsdoc.json",
-    "lint": "./node_modules/.bin/eslint ./*.js"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "vite build",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "sparql",
-    "fetch"
+    "query-builder",
+    "rdf",
+    "semantic-web",
+    "typescript",
+    "sparql-client",
+    "sparql-query"
   ],
   "bugs": {
     "url": "https://github.com/hideokamoto/sparql-client/issues"
@@ -22,19 +42,16 @@
   "author": "Hidetaka Okamoto <info@wp-kyoto.net> (https://wp-kyoto.net)",
   "license": "MIT",
   "dependencies": {
-    "isomorphic-fetch": "^2.2.1",
-    "sparql-http-client": "^1.0.2"
+    "@rdfjs/types": "^1.1.0",
+    "sparql-http-client": "^3.1.0"
   },
   "devDependencies": {
-    "docdash": "^1.0.0",
-    "eslint": "^5.8.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^8.0.0",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "jest": "^24.8.0",
-    "jsdoc": "^3.6.2",
-    "power-assert": "^1.6.1"
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.10.1",
+    "@types/sparql-http-client": "^3.0.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.1",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.8"
   }
 }

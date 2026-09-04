@@ -1,65 +1,205 @@
-# Simple SPARQL Client
-[![Build Status](https://travis-ci.org/hideokamoto/sparql-client.svg?branch=master)](https://travis-ci.org/hideokamoto/sparql-client)
-[![npm version](https://badge.fury.io/js/@hideokamoto/simple-sparql-client.svg)](https://badge.fury.io/js/@hideokamoto/simple-sparql-client)
+# sparql-builder
 
-## Getting started
+[![npm version](https://badge.fury.io/js/sparql-builder.svg)](https://badge.fury.io/js/sparql-builder)
 
-```
-$ npm i -S simple-sparql-client
-```
+Type-safe SPARQL query builder and client for JavaScript/TypeScript. Query RDF data from SPARQL endpoints like DBpedia, Wikidata, and others with a fluent, type-safe API.
 
-### As a function
+## Features
 
-#### Promise
+- 🔧 **Type-safe Query Builder** - Fluent API for building SPARQL queries
+- 🌐 **SPARQL Client** - Execute queries against any SPARQL endpoint
+- 🔷 **Full TypeScript Support** - Complete type definitions included
+- 📦 **ESM and CommonJS** - Works in Node.js and browsers
+- 🚀 **Lightweight** - Built with Vite for optimal bundle size
+- ✅ **Well Tested** - Comprehensive test coverage with Vitest
 
-```
-const { execSparqlQuery( } = require('@hideokamoto/simple-sparql-client')
-execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
-  .then(bindings => console.log(bindings))
-```
+## Installation
 
-#### Async / Await
-
-```
-const { execSparqlQuery( } = require('@hideokamoto/simple-sparql-client')
-const bindings = await execSparqlQuery('select distinct * where { ?s ?p ?o .  } LIMIT 100')
-console.log(bindings)
+```bash
+npm install sparql-builder
 ```
 
-### As a Class
+## Quick Start
 
-#### Promise
+### Building Queries
 
+```typescript
+import { QueryBuilder } from 'sparql-builder'
+
+const query = new QueryBuilder()
+  .prefix('foaf', 'http://xmlns.com/foaf/0.1/')
+  .select('?name', '?email')
+  .where('?person', 'foaf:name', '?name')
+  .where('?person', 'foaf:mbox', '?email')
+  .filter('regex(?name, "John", "i")')
+  .orderBy('?name', 'ASC')
+  .limit(10)
+  .build()
+
+console.log(query)
+// PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+// SELECT ?name ?email
+// WHERE {
+//   ?person foaf:name ?name .
+//   ?person foaf:mbox ?email .
+//   FILTER(regex(?name, "John", "i"))
+// }
+// ORDER BY ASC(?name)
+// LIMIT 10
 ```
-const { SPARQLClient } = require('@hideokamoto/simple-sparql-client')
-const client = new SPARQLClient(endpoint)
+
+### Executing Queries
+
+```typescript
+import { SPARQLClient, QueryBuilder } from 'sparql-builder'
+
+const query = new QueryBuilder()
+  .select('?name')
+  .where('?person', 'foaf:name', '?name')
+  .limit(10)
+  .build()
+
+const client = new SPARQLClient('https://dbpedia.org/sparql')
 client.setQuery(query)
-client.get()
-  .then(bindings => console.log(bindings))
-```
-#### Async / Await
+const results = await client.get()
 
-```
-const { SPARQLClient } = require('@hideokamoto/simple-sparql-client')
-const client = new SPARQLClient(endpoint)
-client.setQuery(query)
-const bindings = await client.get()
-console.log(bindings)
+console.log(results) // Array of bindings
 ```
 
-## Contributing
+### Simple Function API
 
-```
-$ git clone https://github.com/hideokamoto/sparql-client.git
-$ cd sparql-client
-$ npm i
+```typescript
+import { execSparqlQuery } from 'sparql-builder'
+
+const results = await execSparqlQuery(
+  'SELECT ?name WHERE { ?person foaf:name ?name } LIMIT 10',
+  'https://dbpedia.org/sparql'
+)
 ```
 
-### Before PR
+## Query Builder API
 
-Please pass following check before make your Pull Request.
+### Basic Methods
 
+- **`prefix(prefix: string, iri: string)`** - Add PREFIX declaration
+- **`select(...vars: string[])`** - Add SELECT variables
+- **`distinct()`** - Set DISTINCT modifier
+- **`where(subject: string, predicate: string, object: string)`** - Add triple pattern
+- **`filter(expression: string)`** - Add FILTER expression
+- **`limit(n: number)`** - Set LIMIT
+- **`offset(n: number)`** - Set OFFSET
+- **`orderBy(variable: string, direction?: 'ASC' | 'DESC')`** - Set ORDER BY
+- **`build()`** - Build the SPARQL query string
+
+### Advanced Features
+
+#### OPTIONAL Patterns
+
+```typescript
+const query = new QueryBuilder()
+  .select('?name', '?email')
+  .where('?person', 'foaf:name', '?name')
+  .optional(qb => {
+    qb.where('?person', 'foaf:mbox', '?email')
+  })
+  .build()
 ```
-$ npm run lint
-$ npm test
+
+#### GROUP BY and Aggregation
+
+```typescript
+const query = new QueryBuilder()
+  .select('?category')
+  .count('?item', '?count')
+  .where('?item', 'rdf:type', '?category')
+  .groupBy('?category')
+  .build()
 ```
+
+#### Complex Queries
+
+```typescript
+const query = new QueryBuilder()
+  .prefix('foaf', 'http://xmlns.com/foaf/0.1/')
+  .prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+  .distinct()
+  .select('?name', '?age')
+  .where('?person', 'rdf:type', 'foaf:Person')
+  .where('?person', 'foaf:name', '?name')
+  .where('?person', 'foaf:age', '?age')
+  .optional(qb => {
+    qb.where('?person', 'foaf:mbox', '?email')
+  })
+  .filter('?age >= 18')
+  .orderBy('?age', 'DESC')
+  .limit(20)
+  .offset(10)
+  .build()
+```
+
+## SPARQL Client API
+
+### SPARQLClient Class
+
+```typescript
+import { SPARQLClient } from 'sparql-builder'
+
+// Create client with default endpoint (DBpedia)
+const client = new SPARQLClient()
+
+// Or specify custom endpoint
+const client = new SPARQLClient('https://query.wikidata.org/sparql')
+
+// Set query and execute
+client.setQuery('SELECT * WHERE { ?s ?p ?o } LIMIT 10')
+const results = await client.get()
+```
+
+### Methods
+
+- **`setQuery(query: string)`** - Set the SPARQL query
+- **`getQuery()`** - Get the current query
+- **`execQuery()`** - Execute query and get full results
+- **`get()`** - Execute query and get bindings array
+
+## TypeScript Support
+
+Full type definitions are included:
+
+```typescript
+import {
+  QueryBuilder,
+  SPARQLClient,
+  type SparqlBinding,
+  type SparqlResults,
+  type QueryType,
+  type OrderDirection
+} from 'sparql-builder'
+```
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Build
+npm run build
+
+# Lint
+npm run lint
+```
+
+## License
+
+MIT
+
+## Author
+
+Hidetaka Okamoto <info@wp-kyoto.net> (<https://wp-kyoto.net>)
