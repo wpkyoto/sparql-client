@@ -1,6 +1,6 @@
-# sparql-builder
+# @hideokamoto/simple-sparql-client
 
-[![npm version](https://badge.fury.io/js/sparql-builder.svg)](https://badge.fury.io/js/sparql-builder)
+[![npm version](https://img.shields.io/npm/v/@hideokamoto/simple-sparql-client.svg)](https://www.npmjs.com/package/@hideokamoto/simple-sparql-client)
 
 Type-safe SPARQL query builder and client for JavaScript/TypeScript. Query RDF data from SPARQL endpoints like DBpedia, Wikidata, and others with a fluent, type-safe API.
 
@@ -16,7 +16,7 @@ Type-safe SPARQL query builder and client for JavaScript/TypeScript. Query RDF d
 ## Installation
 
 ```bash
-npm install sparql-builder
+npm install @hideokamoto/simple-sparql-client
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ npm install sparql-builder
 ### Building Queries
 
 ```typescript
-import { QueryBuilder } from 'sparql-builder'
+import { QueryBuilder } from '@hideokamoto/simple-sparql-client'
 
 const query = new QueryBuilder()
   .prefix('foaf', 'http://xmlns.com/foaf/0.1/')
@@ -51,7 +51,7 @@ console.log(query)
 ### Executing Queries
 
 ```typescript
-import { SPARQLClient, QueryBuilder } from 'sparql-builder'
+import { SPARQLClient, QueryBuilder } from '@hideokamoto/simple-sparql-client'
 
 const query = new QueryBuilder()
   .select('?name')
@@ -69,7 +69,7 @@ console.log(results) // Array of bindings
 ### Simple Function API
 
 ```typescript
-import { execSparqlQuery } from 'sparql-builder'
+import { execSparqlQuery } from '@hideokamoto/simple-sparql-client'
 
 const results = await execSparqlQuery(
   'SELECT ?name WHERE { ?person foaf:name ?name } LIMIT 10',
@@ -142,7 +142,7 @@ const query = new QueryBuilder()
 ### SPARQLClient Class
 
 ```typescript
-import { SPARQLClient } from 'sparql-builder'
+import { SPARQLClient } from '@hideokamoto/simple-sparql-client'
 
 // Create client with default endpoint (DBpedia)
 const client = new SPARQLClient()
@@ -174,7 +174,7 @@ import {
   type SparqlResults,
   type QueryType,
   type OrderDirection
-} from 'sparql-builder'
+} from '@hideokamoto/simple-sparql-client'
 ```
 
 ## Development

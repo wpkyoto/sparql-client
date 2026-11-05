@@ -1,6 +1,6 @@
 {
-  "name": "sparql-builder",
-  "version": "1.0.0",
+  "name": "@hideokamoto/simple-sparql-client",
+  "version": "2.0.0",
   "description": "Type-safe SPARQL query builder and client for JavaScript/TypeScript",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -33,11 +33,11 @@
     "sparql-query"
   ],
   "bugs": {
-    "url": "https://github.com/hideokamoto/sparql-client/issues"
+    "url": "https://github.com/wpkyoto/sparql-client/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hideokamoto/sparql-client.git"
+    "url": "git+https://github.com/wpkyoto/sparql-client.git"
   },
   "author": "Hidetaka Okamoto <info@wp-kyoto.net> (https://wp-kyoto.net)",
   "license": "MIT",
@@ -53,5 +53,8 @@
     "vite": "^6.0.1",
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

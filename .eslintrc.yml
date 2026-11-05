@@ -1,5 +1,0 @@
-extends: standard
-globals:
-  describe: true
-  it: true
-  test: true
